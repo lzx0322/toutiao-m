@@ -2,7 +2,9 @@
 <template>
   <div class="login-container">
     <!-- 导航栏 -->
-    <van-nav-bar class="page-nav-bar" title="登录" />
+    <van-nav-bar class="page-nav-bar" title="登录">
+      <van-icon slot="left" name="cross" @click="$router.back()" />
+    </van-nav-bar>
     <!-- 导航栏 -->
     <!-- 登录表单 -->
     <van-form ref="loginForm" @submit="onSubmit">
