@@ -12,27 +12,28 @@ const routes = [
   },
   {
     path: '/',
+    redirect: '/home',
     // name: 'layout',
     component: () => import('@/views/layout'),
     children: [
       {
         // 默认子路由,只能有一个
-        path: '',
+        path: '/home',
         name: 'home',
         component: () => import('@/views/home')
       },
       {
-        path: 'qa',
+        path: '/qa',
         name: 'qa',
         component: () => import('@/views/qa')
       },
       {
-        path: 'video',
+        path: '/video',
         name: 'video',
         component: () => import('@/views/video')
       },
       {
-        path: 'my',
+        path: '/my',
         name: 'my',
         component: () => import('@/views/my')
       }
