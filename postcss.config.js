@@ -13,13 +13,16 @@ module.exports = {
     'postcss-pxtorem': {
       // 配置使用 postcss-pxtorem 插件
       // 作用: 把 px 转为 rem
-      rootValue ({ file }) {
+      rootValue({ file }) {
         return file.indexOf('vant') !== -1 ? 37.5 : 75
       },
       // rootValue: 37.5,
       // 配置要转换的 CSS 属性
       // * 表示所有
-      propList: ['*']
+      propList: ['*'],
+      // 配置不要转换的样式资源
+      exclude: 'github-markdown'
+
     }
   }
 }
