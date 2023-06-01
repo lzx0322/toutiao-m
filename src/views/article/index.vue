@@ -1,7 +1,12 @@
 <template>
   <div class="article-container">
     <!-- 导航栏 -->
-    <van-nav-bar class="page-nav-bar" left-arrow title="黑马头条"></van-nav-bar>
+    <van-nav-bar
+      class="page-nav-bar"
+      left-arrow
+      title="黑马头条"
+      @click-left="$router.back()"
+    ></van-nav-bar>
     <!-- /导航栏 -->
 
     <div class="main-wrap">
@@ -76,17 +81,36 @@
           ref="article-content"
         ></div>
         <van-divider>正文结束</van-divider>
+        <!-- 文章的评论列表 -->
+        <comment-list
+          :source="article.art_id"
+          :list="commentList"
+          @onload-success="totalCommentCount = $event.total_count"
+          @reply-click="onReplyClick"
+        ></comment-list>
         <!-- 底部区域 -->
         <div class="article-bottom">
-          <van-button class="comment-btn" type="default" round size="small"
+          <van-button
+            class="comment-btn"
+            type="default"
+            round
+            size="small"
+            @click="isPostShow = true"
             >写评论</van-button
           >
-          <van-icon name="comment-o" info="123" color="#777" />
+          <van-icon
+            class="comment-icon"
+            name="comment-o"
+            :info="totalCommentCount"
+            color="#777"
+          />
           <collect-article
+            class="btn-item"
             v-model="article.is_collected"
             :article-id="article.art_id"
           ></collect-article>
           <like-article
+            class="btn-item"
             v-model="article.attitude"
             :article-id="article.art_id"
           ></like-article>
@@ -95,6 +119,13 @@
           <van-icon name="share" color="#777777"></van-icon>
         </div>
         <!-- /底部区域 -->
+        <!-- 发布评论 -->
+        <van-popup v-model="isPostShow" position="bottom">
+          <comment-post
+            :target="article.art_id"
+            @post-success="onPostSuccess"
+          ></comment-post>
+        </van-popup>
       </div>
       <!-- /加载完成-文章详情 -->
 
@@ -113,6 +144,14 @@
       </div>
       <!-- /加载失败：其它未知错误（例如网络原因或服务端异常） -->
     </div>
+    <!-- 评论回复 -->
+    <van-popup v-model="isReplyShow" position="bottom" style="height: 100%">
+      <comment-reply
+        v-if="isReplyShow"
+        :comment="currentComment"
+        @close="isReplyShow = false"
+      ></comment-reply>
+    </van-popup>
   </div>
 </template>
 
@@ -122,12 +161,25 @@ import { ImagePreview } from 'vant'
 import FollowUser from '@/components/follow-user'
 import CollectArticle from '@/components/collect-article'
 import LikeArticle from '@/components/like-article'
+import CommentList from '@/views/article/components/comment-list.vue'
+import CommentPost from '@/views/article/components/comment-post.vue'
+import CommentReply from '@/views/article/components/comment-reply.vue'
 export default {
   name: 'ArticleIndex',
   components: {
     FollowUser,
     CollectArticle,
-    LikeArticle
+    LikeArticle,
+    CommentList,
+    CommentPost,
+    CommentReply
+  },
+  // 给所有的后代组件提供数据
+  // eslint-disable-next-line space-before-function-paren
+  provide: function () {
+    return {
+      articleId: this.articleId
+    }
   },
   props: {
     articleId: {
@@ -139,7 +191,13 @@ export default {
     return {
       article: {}, // 文章详情
       loading: true, // 加载中的 loading 状态
-      errStatus: 0 // 失败的状态码
+      errStatus: 0, // 失败的状态码
+      followLoading: false,
+      totalCommentCount: 0,
+      isPostShow: false, // 控制发布评论的显示状态
+      commentList: [], // 评论列表
+      isReplyShow: false,
+      currentComment: {} // 当前点击回复的评论项
     }
   },
   created() {
@@ -180,6 +238,14 @@ export default {
           })
         }
       })
+    },
+    onPostSuccess(data) {
+      this.isPostShow = false
+      this.commentList.unshift(data.new_obj)
+    },
+    onReplyClick(comment) {
+      this.currentComment = comment
+      this.isReplyShow = true
     }
   }
 }
@@ -198,6 +264,13 @@ export default {
     background-color: #fff;
   }
   .article-detail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 92px;
+    bottom: 88px;
+    overflow-y: scroll;
+    background-color: #fff;
     .article-title {
       font-size: 40px;
       padding: 50px 32px;
@@ -293,9 +366,26 @@ export default {
     }
     /deep/.van-icon {
       font-size: 40px;
+      .comment-icon {
+        top: 2px;
+        color: #777;
+      }
       .van-info {
         font-size: 16px;
         background-color: #e22829;
+      }
+      .btn-item {
+        border: none;
+        padding: 0;
+        height: 40px;
+        line-height: 40px;
+        color: #777777;
+      }
+      .collect-btn--collected {
+        color: #ffa500;
+      }
+      .like-btn--liked {
+        color: #e5645f;
       }
     }
   }
